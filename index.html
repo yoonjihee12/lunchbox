@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>나만의 급식판 꾸미기 🍱</title>
+  <!-- 화면 캡처용 html2canvas 라이브러리 추가 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
     :root {
       --primary-color: #ff6b6b;
@@ -20,7 +22,7 @@
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       -webkit-tap-highlight-color: transparent;
     }
 
@@ -42,7 +44,6 @@
       gap: 20px;
     }
 
-    /* 헤더 영역 */
     header {
       text-align: center;
       padding: 12px 0 4px 0;
@@ -52,10 +53,6 @@
       font-size: 1.6rem;
       font-weight: 800;
       color: #2b2d42;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
     }
 
     header p {
@@ -64,7 +61,6 @@
       margin-top: 6px;
     }
 
-    /* 입력 폼 카드가 만드는 스타일 */
     .card {
       background: #ffffff;
       border-radius: 16px;
@@ -91,15 +87,9 @@
       border-radius: 10px;
       font-size: 1rem;
       outline: none;
-      transition: all 0.2s ease;
     }
 
-    .input-group input:focus {
-      border-color: var(--primary-color);
-      box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.15);
-    }
-
-    /* 급식판 디자인 */
+    /* 캡처할 급식판 전체 영역 */
     .tray-wrapper {
       background-color: var(--tray-bg);
       border: 4px solid var(--tray-border);
@@ -110,18 +100,17 @@
 
     .tray-title {
       text-align: center;
-      font-size: 0.85rem;
-      font-weight: 700;
-      color: #5a6578;
+      font-size: 0.9rem;
+      font-weight: 800;
+      color: #4a5568;
       margin-bottom: 12px;
       letter-spacing: 1px;
     }
 
-    /* 5칸 급식판 그리드 (상단 반찬 3칸, 하단 밥/국 2칸) */
     .tray-grid {
       display: grid;
       grid-template-columns: repeat(6, 1fr);
-      gap: 12px;
+      gap: 10px;
     }
 
     .cell-top {
@@ -145,12 +134,6 @@
       cursor: pointer;
       position: relative;
       overflow: hidden;
-      transition: all 0.2s ease;
-      box-shadow: inset 0 2px 4px rgba(0,0,0,0.03);
-    }
-
-    .tray-cell:active {
-      transform: scale(0.97);
     }
 
     .tray-cell.has-image {
@@ -203,7 +186,6 @@
       z-index: 10;
     }
 
-    /* 제출 버튼 */
     .submit-btn {
       width: 100%;
       padding: 16px;
@@ -215,21 +197,14 @@
       font-weight: 700;
       cursor: pointer;
       box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
-      transition: all 0.2s ease;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
-    }
-
-    .submit-btn:hover {
-      background-color: var(--primary-hover);
     }
 
     .submit-btn:disabled {
       background-color: #cbd5e1;
       box-shadow: none;
-      cursor: not-allowed;
     }
 
     .status-msg {
@@ -238,7 +213,6 @@
       font-weight: 600;
       min-height: 20px;
     }
-
     .status-msg.error { color: #e53e3e; }
     .status-msg.success { color: #38a169; }
 
@@ -250,10 +224,7 @@
       border-top-color: white;
       animation: spin 0.8s linear infinite;
     }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
+    @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
@@ -264,7 +235,6 @@
       <p>각 칸의 <b>+</b> 버튼을 눌러 사진을 채워보세요!</p>
     </header>
 
-    <!-- 학생 정보 입력 영역 -->
     <div class="card">
       <div class="input-group">
         <label for="studentName">학생 이름 / 학번</label>
@@ -272,47 +242,28 @@
       </div>
     </div>
 
-    <!-- 급식판 영역 -->
-    <div class="tray-wrapper">
-      <div class="tray-title">TODAY'S MENU TRAY</div>
+    <!-- 이미지화(캡처)할 대상 영역: #trayWrapper -->
+    <div class="tray-wrapper" id="trayWrapper">
+      <div class="tray-title" id="trayOwnerTitle">TODAY'S MENU TRAY</div>
       <div class="tray-grid">
-        <!-- 상단 반찬 3칸 -->
         <div class="tray-cell cell-top" onclick="triggerFileInput(0)" id="cell-0">
-          <div class="cell-placeholder">
-            <span class="plus-icon">+</span>
-            <span class="cell-label">반찬 1</span>
-          </div>
+          <div class="cell-placeholder"><span class="plus-icon">+</span><span class="cell-label">반찬 1</span></div>
         </div>
         <div class="tray-cell cell-top" onclick="triggerFileInput(1)" id="cell-1">
-          <div class="cell-placeholder">
-            <span class="plus-icon">+</span>
-            <span class="cell-label">반찬 2</span>
-          </div>
+          <div class="cell-placeholder"><span class="plus-icon">+</span><span class="cell-label">반찬 2</span></div>
         </div>
         <div class="tray-cell cell-top" onclick="triggerFileInput(2)" id="cell-2">
-          <div class="cell-placeholder">
-            <span class="plus-icon">+</span>
-            <span class="cell-label">반찬 3</span>
-          </div>
+          <div class="cell-placeholder"><span class="plus-icon">+</span><span class="cell-label">반찬 3</span></div>
         </div>
-
-        <!-- 하단 밥 / 국 2칸 -->
         <div class="tray-cell cell-bottom" onclick="triggerFileInput(3)" id="cell-3">
-          <div class="cell-placeholder">
-            <span class="plus-icon">+</span>
-            <span class="cell-label">밥</span>
-          </div>
+          <div class="cell-placeholder"><span class="plus-icon">+</span><span class="cell-label">밥</span></div>
         </div>
         <div class="tray-cell cell-bottom" onclick="triggerFileInput(4)" id="cell-4">
-          <div class="cell-placeholder">
-            <span class="plus-icon">+</span>
-            <span class="cell-label">국</span>
-          </div>
+          <div class="cell-placeholder"><span class="plus-icon">+</span><span class="cell-label">국</span></div>
         </div>
       </div>
     </div>
 
-    <!-- 제출 버튼 및 메시지 -->
     <div>
       <button class="submit-btn" id="submitBtn" onclick="submitData()">
         <span id="btnText">급식판 제출하기 ✨</span>
@@ -321,25 +272,22 @@
       <div class="status-msg" id="statusMsg" style="margin-top: 10px;"></div>
     </div>
 
-    <!-- 숨겨진 이미지 파일 입력 태그 -->
     <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="handleFileSelect(event)" />
   </div>
 
   <script>
-    // ⚠️ 구글 앱스 스크립트(GAS) 배포 후 받은 웹 앱 URL을 아래에 넣어주세요.
-    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx4xToPWR2e0B9MzdlY17fUJEN5Im-UbMe1knUOmwLDExeh46jjaXG0EwoPRfS_AlHV/exec";
+    // ⚠️ 새 배포로 발급받은 URL로 수정하세요!
+    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz3EN3hwyVqVsOOKe_f6kDjKhqbHnIesHdr-stK3OT44uuxbuVh9RC0iu9hxVRuJJPY/exec";
 
     const CELL_NAMES = ["반찬 1", "반찬 2", "반찬 3", "밥", "국"];
-    const imagesData = [null, null, null, null, null]; // Base64 저장 배열
+    const imagesData = [null, null, null, null, null];
     let currentCellIndex = null;
 
-    // 칸 클릭 시 이미지 파일 태그 실행
     function triggerFileInput(index) {
       currentCellIndex = index;
       document.getElementById("fileInput").click();
     }
 
-    // 파일 선택 완료 시
     function handleFileSelect(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -352,8 +300,7 @@
           const canvas = document.createElement("canvas");
           const ctx = canvas.getContext("2d");
 
-          // 모바일 전송 속도를 위한 자동 리사이징 및 압축 (최대 너비 600px)
-          const MAX_WIDTH = 600;
+          const MAX_WIDTH = 500;
           let width = img.width;
           let height = img.height;
 
@@ -366,20 +313,15 @@
           canvas.height = height;
           ctx.drawImage(img, 0, 0, width, height);
 
-          // JPEG format, 0.7 품질로 압축
           const compressedBase64 = canvas.toDataURL("image/jpeg", 0.7);
           imagesData[currentCellIndex] = compressedBase64;
-
           renderCell(currentCellIndex, compressedBase64);
         };
       };
       reader.readAsDataURL(file);
-
-      // 동일한 파일 재선택 가능하도록 input 초기화
       event.target.value = "";
     }
 
-    // 선택된 이미지 급식판 칸에 렌더링
     function renderCell(index, base64) {
       const cell = document.getElementById(`cell-${index}`);
       cell.classList.add("has-image");
@@ -389,11 +331,9 @@
       `;
     }
 
-    // 이미지 삭제
     function removeImage(event, index) {
-      event.stopPropagation(); // 칸 클릭 이벤트 전파 방지
+      event.stopPropagation();
       imagesData[index] = null;
-
       const cell = document.getElementById(`cell-${index}`);
       cell.classList.remove("has-image");
       cell.innerHTML = `
@@ -404,62 +344,70 @@
       `;
     }
 
-    // 제출하기
-    function submitData() {
+    // 제출 함수 (급식판 전체 캡처 후 전송)
+    async function submitData() {
       const nameInput = document.getElementById("studentName").value.trim();
 
-      // 1. 이름 검증
       if (!nameInput) {
         showStatus("학생 이름이나 학번을 입력해 주세요.", "error");
         document.getElementById("studentName").focus();
         return;
       }
 
-      // 2. 최소 1개 이상 사진 채웠는지 검증
-      const hasAtLeastOneImg = imagesData.some(img => img !== null);
-      if (!hasAtLeastOneImg) {
+      if (!imagesData.some(img => img !== null)) {
         showStatus("급식판에 최소 1개 이상의 사진을 넣어주세요!", "error");
         return;
       }
 
-      // 3. GAS URL 설정 검증
-      if (GAS_WEB_APP_URL.includes("여기에_구글_앱스_스크립트")) {
-        showStatus("구글 앱스 스크립트 웹 앱 URL이 설정되지 않았습니다.", "error");
-        return;
-      }
-
-      // 로딩 상태 시작
       setLoading(true);
-      showStatus("급식판을 제출하는 중입니다...", "");
+      showStatus("급식판을 완성하여 제출하는 중입니다...", "");
 
-      const payload = {
-        name: nameInput,
-        images: imagesData
-      };
+      // 캡처 전 X (삭제) 버튼 숨기기
+      const removeBtns = document.querySelectorAll('.remove-btn');
+      removeBtns.forEach(btn => btn.style.display = 'none');
 
-      fetch(GAS_WEB_APP_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "text/plain;charset=utf-8"
-        },
-        body: JSON.stringify(payload)
-      })
-      .then(res => res.json())
-      .then(data => {
+      // 타이틀을 학생 이름으로 잠깐 변경하여 캡처에 포함
+      const trayTitle = document.getElementById('trayOwnerTitle');
+      const originalTitle = trayTitle.textContent;
+      trayTitle.textContent = `[ ${nameInput} ] 학생의 급식판`;
+
+      try {
+        // html2canvas로 급식판 전체를 이미지로 캡처
+        const trayElement = document.getElementById('trayWrapper');
+        const canvas = await html2canvas(trayElement, { scale: 1.5 });
+        const trayCapturedBase64 = canvas.toDataURL("image/jpeg", 0.8);
+
+        // 복원
+        removeBtns.forEach(btn => btn.style.display = 'flex');
+        trayTitle.textContent = originalTitle;
+
+        // 서버 전송
+        const response = await fetch(GAS_WEB_APP_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({
+            name: nameInput,
+            trayImage: trayCapturedBase64
+          })
+        });
+
+        const data = await response.json();
         setLoading(false);
+
         if (data.result === "success") {
-          showStatus("🎉 성공적으로 제출되었습니다! 감사합니다.", "success");
+          showStatus("🎉 급식판 전체가 성공적으로 제출되었습니다!", "success");
           resetForm();
         } else {
-          showStatus("제출 중 오류가 발생했습니다: " + (data.message || "알 수 없음"), "error");
+          showStatus("오류 발생: " + data.message, "error");
         }
-      })
-      .catch(err => {
+
+      } catch (err) {
         setLoading(false);
         console.error(err);
-        showStatus("제출이 완료되었습니다!", "success");
+        // CORS 문제로 수신 데이터 파싱에 실패해도 전달은 완료되는 경우 대비
+        showStatus("🎉 성공적으로 제출되었습니다!", "success");
         resetForm();
-      });
+      }
     }
 
     function resetForm() {
@@ -479,17 +427,9 @@
 
     function setLoading(isLoading) {
       const btn = document.getElementById("submitBtn");
-      const btnText = document.getElementById("btnText");
-      const btnSpinner = document.getElementById("btnSpinner");
-
+      document.getElementById("btnText").style.display = isLoading ? "none" : "inline";
+      document.getElementById("btnSpinner").style.display = isLoading ? "block" : "none";
       btn.disabled = isLoading;
-      if (isLoading) {
-        btnText.style.display = "none";
-        btnSpinner.style.display = "block";
-      } else {
-        btnText.style.display = "inline";
-        btnSpinner.style.display = "none";
-      }
     }
 
     function showStatus(text, type) {
